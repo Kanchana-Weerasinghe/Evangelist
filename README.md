@@ -1,0 +1,1 @@
+Cortex is a governed multi-agent platform that answers customer questions about a company's products and services — grounded strictly in that company's own documentation and constraints, not general knowledge.
