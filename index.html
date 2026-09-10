@@ -1,5 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Evangelist - Cortex Architecture Reference</title>
+<title>Cortex Architecture Reference</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -46,6 +45,20 @@
   .meta{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-muted);text-align:right;line-height:1.7;}
   .meta b{color:var(--ink);font-weight:600;}
   .lede{font-size:16px;color:var(--ink-muted);margin:22px 0 8px;max-width:76ch;}
+
+  .atc-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:28px 32px;margin:40px 0;}
+  .atc-lead{font-size:16px;color:var(--ink);margin:0 0 14px;max-width:78ch;}
+  .atc-metaphor{font-family:var(--font-display);font-weight:600;font-size:19px;font-style:italic;color:var(--ink);margin:0 0 22px;max-width:70ch;}
+  .atc-metaphor b{color:var(--flow);font-style:normal;}
+  .atc-caption{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px;}
+  .atc-list{list-style:none;margin:0 0 26px;padding:0;display:flex;flex-direction:column;gap:10px;}
+  .atc-list li{position:relative;padding-left:22px;font-size:14px;color:var(--ink-muted);max-width:72ch;}
+  .atc-list li::before{content:"";position:absolute;left:2px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--flow);}
+  .boundary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .boundary{border:1px solid var(--line);border-radius:9px;padding:14px 16px;background:var(--paper);}
+  .boundary .emoji{font-size:16px;margin-right:6px;}
+  .boundary b{font-size:13.5px;color:var(--ink);}
+  .boundary p{margin:6px 0 0;font-size:12.5px;color:var(--ink-muted);max-width:none;}
 
   section{margin:52px 0;}
   h2{font-family:var(--font-display);font-weight:700;font-size:23px;margin:0 0 6px;text-wrap:balance;}
@@ -116,7 +129,27 @@
     </div>
   </div>
 
-  <p class="lede">Cortex answers customer questions about a company's products by grounding a Google ADK agent pipeline in retrieved, embedded product documentation — served through a static customer portal and administered through a Streamlit backoffice. Colour carries one meaning throughout every diagram on this page: <b style="color:var(--flow)">teal</b> is a processing step, <b style="color:var(--decision)">amber</b> is a decision or governance checkpoint, <b style="color:var(--voice)">violet</b> is voice-specific, <b style="color:var(--error)">red</b> is a rejection or flagged outcome.</p>
+
+  <div class="atc-card">
+    <p class="atc-lead">Cortex is a governed multi-agent platform that answers customer questions about a company's products and services — grounded strictly in that company's own documentation and constraints, not general knowledge.</p>
+    <p class="atc-metaphor">Think of it as an <b>Air Traffic Control (ATC) system</b> for the agents doing that work.</p>
+
+    <p class="atc-caption">Just like ATC</p>
+    <ul class="atc-list">
+      <li>A single planner classifies and routes every request — it never does the work itself, only decides who should</li>
+      <li>Governance gates run before an answer ever reaches a customer — budget checked, content checked, compliance rules applied</li>
+      <li>Every step is tracked in real time — per-turn latency, token spend, retrieval quality, down to a dead-letter queue for anything that scores weak</li>
+      <li>Nothing ships ungoverned — a document over budget, a query that hits a guardrail, or an answer that fails its quality threshold is stopped or flagged, never silently let through</li>
+    </ul>
+
+    <p class="atc-caption">Agents collaborate within strict boundaries of</p>
+    <div class="boundary-grid">
+      <div class="boundary"><span class="emoji">🔐</span><b>Security</b><p>Tenant-scoped auth, isolation enforced on every lookup, EU AI Act–aligned escalation and record-keeping</p></div>
+      <div class="boundary"><span class="emoji">💸</span><b>Cost</b><p>Two-pass budget gates — quota at upload, tokens at chunk time — plus provider fallback chosen for cost as well as uptime</p></div>
+      <div class="boundary"><span class="emoji">📊</span><b>Observability</b><p>OpenTelemetry tracing, per-step latency, full ingestion and evaluation audit trails</p></div>
+      <div class="boundary"><span class="emoji">⚙️</span><b>Reliability</b><p>Every model call falls back across providers in priority order; a failure degrades gracefully, never to silence</p></div>
+    </div>
+  </div>
 
   <section>
     <h2><span class="num">1 ·</span> System architecture</h2>
@@ -762,5 +795,3 @@
   </footer>
 
 </div>
-
-</body></html>
