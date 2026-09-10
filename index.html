@@ -1,0 +1,766 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cortex Architecture Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#f2f4f6;
+    --surface:#ffffff;
+    --ink:#12181f;
+    --ink-muted:#57626d;
+    --ink-faint:#7d8891;
+    --line:#d7dee5;
+    --line-strong:#12181f;
+    --flow:#1d7a6e;
+    --flow-soft:#e4f0ee;
+    --decision:#b4790e;
+    --decision-soft:#f5ead7;
+    --voice:#6a4fc4;
+    --voice-soft:#ece7fa;
+    --error:#b23b3b;
+    --error-soft:#f7e7e7;
+    --font-display:'Sora', 'Segoe UI', sans-serif;
+    --font-body:'IBM Plex Sans', -apple-system, Segoe UI, sans-serif;
+    --font-mono:'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#10151b; --surface:#171d24; --ink:#e7ecf1; --ink-muted:#8fa0ac; --ink-faint:#71818c; --line:#2a3540; --line-strong:#e7ecf1;
+      --flow:#4fb3a3; --flow-soft:#132420; --decision:#e0a63d; --decision-soft:#2a2314;
+      --voice:#a78be0; --voice-soft:#211c34; --error:#e08080; --error-soft:#2b1919;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#10151b; --surface:#171d24; --ink:#e7ecf1; --ink-muted:#8fa0ac; --ink-faint:#71818c; --line:#2a3540; --line-strong:#e7ecf1;
+    --flow:#4fb3a3; --flow-soft:#132420; --decision:#e0a63d; --decision-soft:#2a2314;
+    --voice:#a78be0; --voice-soft:#211c34; --error:#e08080; --error-soft:#2b1919;
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--font-body);line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .page{max-width:1040px;margin:0 auto;padding:52px 24px 96px;}
+
+  .masthead{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;border-bottom:2px solid var(--line-strong);padding-bottom:18px;margin-bottom:6px;flex-wrap:wrap;}
+  .eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px;}
+  h1{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,4vw,38px);line-height:1.1;margin:0;text-wrap:balance;}
+  .meta{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-muted);text-align:right;line-height:1.7;}
+  .meta b{color:var(--ink);font-weight:600;}
+  .lede{font-size:16px;color:var(--ink-muted);margin:22px 0 8px;max-width:76ch;}
+
+  section{margin:52px 0;}
+  h2{font-family:var(--font-display);font-weight:700;font-size:23px;margin:0 0 6px;text-wrap:balance;}
+  h2 .num{color:var(--flow);}
+  .section-sub{color:var(--ink-muted);font-size:14px;margin:0 0 22px;max-width:72ch;}
+  h3{font-family:var(--font-display);font-weight:600;font-size:16px;margin:28px 0 6px;}
+  p{margin:0 0 12px;max-width:74ch;}
+  .note{font-size:12.5px;color:var(--ink-faint);max-width:74ch;}
+
+  figure{margin:0;}
+  figure svg{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--line);border-radius:10px;}
+  figcaption{font-size:13px;color:var(--ink-muted);margin-top:10px;max-width:76ch;}
+
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:18px;}
+  table{border-collapse:collapse;width:100%;min-width:620px;font-size:13px;}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+  thead th{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);font-weight:600;border-bottom:2px solid var(--line-strong);white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.pkg{font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;}
+  td.num{font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;}
+
+  .stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+  .stack-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;}
+  .stack-card h3{margin:0 0 10px;}
+  .stack-card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;}
+  .stack-card li{font-size:13px;color:var(--ink-muted);display:flex;gap:8px;align-items:baseline;}
+  .stack-card li .pkg{font-family:var(--font-mono);color:var(--ink);font-size:12.5px;white-space:nowrap;}
+  .stack-card li .role{color:var(--ink-faint);}
+
+  footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint);}
+
+  /* ===== reused workflow figure (Section 3) — its own class set ===== */
+  .workflow-fig .lbl{fill:var(--ink);font-family:var(--font-body);font-size:12.5px;}
+  .workflow-fig .lbl-sm{fill:var(--ink-muted);font-family:var(--font-body);font-size:11px;}
+  .workflow-fig .lbl-mono{fill:var(--ink-muted);font-family:var(--font-mono);font-size:10.5px;}
+  .workflow-fig .lbl-group{fill:var(--ink-muted);font-family:var(--font-body);font-size:11.5px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;}
+  .workflow-fig .edge{stroke:var(--ink-muted);stroke-width:1.4;fill:none;}
+  .workflow-fig .edge-main{stroke:var(--ink);stroke-width:1.6;fill:none;}
+  .workflow-fig .edge-async{stroke:var(--ink-muted);stroke-width:1.4;fill:none;stroke-dasharray:5 4;}
+  .workflow-fig .edge-lbl{fill:var(--ink-muted);font-family:var(--font-mono);font-size:10px;}
+  .workflow-fig .n-box{fill:var(--surface);stroke:var(--ink);stroke-width:1.4;}
+  .workflow-fig .n-flow{fill:var(--flow-soft);stroke:var(--flow);stroke-width:1.6;}
+  .workflow-fig .n-decision{fill:var(--decision-soft);stroke:var(--decision);stroke-width:1.8;}
+  .workflow-fig .n-voice{fill:var(--voice-soft);stroke:var(--voice);stroke-width:1.6;stroke-dasharray:5 3;}
+  .workflow-fig .n-error{fill:var(--error-soft);stroke:var(--error);stroke-width:1.6;}
+  .workflow-fig .n-group{fill:none;stroke:var(--line);stroke-width:1.4;stroke-dasharray:4 4;}
+
+  .diagram-legend{display:flex;flex-wrap:wrap;gap:18px;margin:14px 0 0;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-size:12px;color:var(--ink-muted);}
+  .diagram-legend span{display:inline-flex;align-items:center;gap:7px;}
+  .swatch{width:12px;height:12px;border-radius:3px;flex:none;}
+  .sw-flow{background:var(--flow-soft);border:1.5px solid var(--flow);}
+  .sw-decision{background:var(--decision-soft);border:1.5px solid var(--decision);}
+  .sw-voice{background:var(--voice-soft);border:1.5px dashed var(--voice);}
+  .sw-error{background:var(--error-soft);border:1.5px solid var(--error);}
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div>
+      <p class="eyebrow">Technical Reference</p>
+      <h1>Cortex — Architecture &amp; Technology Stack</h1>
+    </div>
+    <div class="meta">
+      <div><b>Cortex</b> · AI product knowledge platform</div>
+      <div>Generated from the live codebase</div>
+      <div>10 September 2026</div>
+    </div>
+  </div>
+
+  <p class="lede">Cortex answers customer questions about a company's products by grounding a Google ADK agent pipeline in retrieved, embedded product documentation — served through a static customer portal and administered through a Streamlit backoffice. Colour carries one meaning throughout every diagram on this page: <b style="color:var(--flow)">teal</b> is a processing step, <b style="color:var(--decision)">amber</b> is a decision or governance checkpoint, <b style="color:var(--voice)">violet</b> is voice-specific, <b style="color:var(--error)">red</b> is a rejection or flagged outcome.</p>
+
+  <section>
+    <h2><span class="num">1 ·</span> System architecture</h2>
+    <p class="section-sub">Eight layers, top (user-facing) to bottom (persistence), plus observability as cross-cutting instrumentation rather than a further stage in the chain.</p>
+
+    <figure>
+      <svg viewBox="0 0 1000 892" role="img" aria-label="Cortex's eight-layer architecture: Experience, API and Security, Business Service, Workflow Orchestrator, Agent Governance including memory governance and EU AI Act aligned guardrails, Agent Layer on Google ADK, Persistence, and Data Ingestion, with Observability as a cross-cutting rail instrumenting every layer.">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <line x1="20" y1="34" x2="20" y2="856" stroke="currentColor" stroke-width="1.6" opacity="0.5" marker-end="url(#arrow)"/>
+        <text x="12" y="26" font-size="11" fill="currentColor" opacity="0.7">request</text>
+        <text x="12" y="742" font-size="11" fill="currentColor" opacity="0.7">reads /</text>
+        <text x="12" y="754" font-size="11" fill="currentColor" opacity="0.7">writes</text>
+
+        <!-- L1 Experience -->
+        <rect x="40" y="30" width="700" height="70" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="50" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">1 · Experience</text>
+        <g><rect x="56" y="60" width="118" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="115" y="77" font-size="11" text-anchor="middle" fill="var(--ink)">Customer Portal</text></g>
+        <g><rect x="184" y="60" width="98" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="233" y="77" font-size="11" text-anchor="middle" fill="var(--ink)">Admin Portal</text></g>
+
+        <!-- L2 API & Security -->
+        <rect x="40" y="114" width="700" height="70" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="134" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">2 · API &amp; Security</text>
+        <g><rect x="56" y="144" width="110" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="111" y="161" font-size="11" text-anchor="middle" fill="var(--ink)">FastAPI Routes</text></g>
+        <g><rect x="176" y="144" width="98" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="225" y="161" font-size="11" text-anchor="middle" fill="var(--ink)">JWT + bcrypt</text></g>
+        <g><rect x="284" y="144" width="118" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="343" y="161" font-size="11" text-anchor="middle" fill="var(--ink)">Tenant Scoping</text></g>
+
+        <!-- L3 Business Service -->
+        <rect x="40" y="198" width="700" height="70" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="218" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">3 · Business Service</text>
+        <g><rect x="56" y="228" width="98" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="105" y="245" font-size="11" text-anchor="middle" fill="var(--ink)">Conversation</text></g>
+        <g><rect x="164" y="228" width="84" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="206" y="245" font-size="11" text-anchor="middle" fill="var(--ink)">Document</text></g>
+        <g><rect x="258" y="228" width="130" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="323" y="245" font-size="11" text-anchor="middle" fill="var(--ink)">Product / Company</text></g>
+        <g><rect x="398" y="228" width="84" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="440" y="245" font-size="11" text-anchor="middle" fill="var(--ink)">Evaluation</text></g>
+
+        <!-- L4 Workflow Orchestrator -->
+        <rect x="40" y="282" width="700" height="104" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="302" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">4 · Workflow Orchestrator</text>
+        <g><rect x="56" y="312" width="138" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="125" y="329" font-size="11" text-anchor="middle" fill="var(--ink)">Ingestion Pipeline</text></g>
+        <g><rect x="204" y="312" width="150" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="279" y="329" font-size="11" text-anchor="middle" fill="var(--ink)">Evaluation Workflow</text></g>
+        <g><rect x="364" y="312" width="158" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="443" y="329" font-size="11" text-anchor="middle" fill="var(--ink)">Knowledge Generation</text></g>
+        <g><rect x="56" y="344" width="118" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="115" y="361" font-size="11" text-anchor="middle" fill="var(--ink)">Product Persona</text></g>
+        <g><rect x="184" y="344" width="46" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="207" y="361" font-size="11" text-anchor="middle" fill="var(--ink)">Sync</text></g>
+        <g><rect x="240" y="344" width="52" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="266" y="361" font-size="11" text-anchor="middle" fill="var(--ink)">Async</text></g>
+
+        <!-- L5 Agent Governance -->
+        <rect x="40" y="400" width="700" height="104" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="420" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">5 · Agent Governance</text>
+        <g><rect x="56" y="430" width="110" height="26" rx="13" fill="var(--decision-soft)" stroke="var(--decision)"/><text x="111" y="447" font-size="11" text-anchor="middle" fill="var(--ink)">Budget &amp; Quota</text></g>
+        <g><rect x="174" y="430" width="84" height="26" rx="13" fill="var(--decision-soft)" stroke="var(--decision)"/><text x="216" y="447" font-size="11" text-anchor="middle" fill="var(--ink)">Guardrails</text></g>
+        <g><rect x="266" y="430" width="118" height="26" rx="13" fill="var(--decision-soft)" stroke="var(--decision)"/><text x="325" y="447" font-size="11" text-anchor="middle" fill="var(--ink)">Platform Config</text></g>
+        <g><rect x="56" y="462" width="138" height="26" rx="13" fill="var(--decision-soft)" stroke="var(--decision)"/><text x="125" y="479" font-size="11" text-anchor="middle" fill="var(--ink)">Memory Governance</text></g>
+        <g><rect x="204" y="462" width="150" height="26" rx="13" fill="var(--decision-soft)" stroke="var(--decision)"/><text x="279" y="479" font-size="11" text-anchor="middle" fill="var(--ink)">EU AI Act Alignment</text></g>
+        <g><rect x="364" y="462" width="92" height="26" rx="13" fill="var(--decision-soft)" stroke="var(--decision)"/><text x="410" y="479" font-size="11" text-anchor="middle" fill="var(--ink)">Permissions</text></g>
+        <g><rect x="466" y="462" width="78" height="26" rx="13" fill="var(--decision-soft)" stroke="var(--decision)"/><text x="505" y="479" font-size="11" text-anchor="middle" fill="var(--ink)">Execution</text></g>
+
+        <!-- L6 Agent Layer (ADK) -->
+        <rect x="40" y="518" width="700" height="140" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="538" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">6 · Agent Layer — Google ADK</text>
+        <g><rect x="56" y="548" width="66" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="89" y="565" font-size="11" text-anchor="middle" fill="var(--ink)">Planner</text></g>
+        <g><rect x="132" y="548" width="138" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="201" y="565" font-size="11" text-anchor="middle" fill="var(--ink)">Product Specialist</text></g>
+        <g><rect x="280" y="548" width="110" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="335" y="565" font-size="11" text-anchor="middle" fill="var(--ink)">Critic / Judge</text></g>
+        <g><rect x="56" y="580" width="78" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="95" y="597" font-size="11" text-anchor="middle" fill="var(--ink)">Retrieval</text></g>
+        <g><rect x="144" y="580" width="168" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="228" y="597" font-size="11" text-anchor="middle" fill="var(--ink)">Memory &amp; Context Mgmt</text></g>
+        <g><rect x="322" y="580" width="52" height="26" rx="13" fill="var(--voice-soft)" stroke="var(--voice)" stroke-dasharray="4 2"/><text x="348" y="597" font-size="11" text-anchor="middle" fill="var(--ink)">Voice</text></g>
+        <g><rect x="56" y="612" width="178" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="145" y="629" font-size="11" text-anchor="middle" fill="var(--ink)">Intent &amp; Recommendation</text></g>
+        <g><rect x="244" y="612" width="158" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="323" y="629" font-size="11" text-anchor="middle" fill="var(--ink)">Tool Use (MCP / A2A)</text></g>
+
+        <!-- L7 Persistence -->
+        <rect x="40" y="672" width="700" height="70" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="692" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">7 · Persistence</text>
+        <g><rect x="56" y="702" width="104" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="108" y="719" font-size="11" text-anchor="middle" fill="var(--ink)">Repositories</text></g>
+        <g><rect x="172" y="702" width="118" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="231" y="719" font-size="11" text-anchor="middle" fill="var(--ink)">pgvector Store</text></g>
+        <text x="700" y="719" font-size="11" text-anchor="end" fill="currentColor" opacity="0.65">PostgreSQL 15+</text>
+
+        <!-- L8 Data Ingestion -->
+        <rect x="40" y="756" width="700" height="104" rx="9" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.85"/>
+        <text x="56" y="776" font-size="12.5" font-family="var(--font-display)" font-weight="700" fill="currentColor">8 · Data Ingestion</text>
+        <g><rect x="56" y="786" width="66" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="89" y="803" font-size="11" text-anchor="middle" fill="var(--ink)">Extract</text></g>
+        <g><rect x="132" y="786" width="52" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="158" y="803" font-size="11" text-anchor="middle" fill="var(--ink)">Clean</text></g>
+        <g><rect x="194" y="786" width="52" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="220" y="803" font-size="11" text-anchor="middle" fill="var(--ink)">Chunk</text></g>
+        <g><rect x="56" y="818" width="110" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="111" y="835" font-size="11" text-anchor="middle" fill="var(--ink)">Store Raw File</text></g>
+        <g><rect x="176" y="818" width="52" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="202" y="835" font-size="11" text-anchor="middle" fill="var(--ink)">Batch</text></g>
+        <g><rect x="238" y="818" width="72" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="274" y="835" font-size="11" text-anchor="middle" fill="var(--ink)">Realtime</text></g>
+        <g><rect x="320" y="818" width="60" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="350" y="835" font-size="11" text-anchor="middle" fill="var(--ink)">Hybrid</text></g>
+
+        <!-- Observability rail -->
+        <rect x="780" y="30" width="180" height="830" rx="9" fill="none" stroke="var(--ink-faint)" stroke-width="1.3" stroke-dasharray="4 3"/>
+        <text x="796" y="50" font-size="12" font-family="var(--font-display)" font-weight="700" fill="var(--ink-muted)">Observability</text>
+        <text x="796" y="64" font-size="10" fill="var(--ink-faint)">cross-cutting — every layer</text>
+        <g><rect x="796" y="80" width="150" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="871" y="97" font-size="10.5" text-anchor="middle" fill="var(--ink)">OpenTelemetry</text></g>
+        <g><rect x="796" y="116" width="150" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="871" y="133" font-size="10.5" text-anchor="middle" fill="var(--ink)">StepTimer Metrics</text></g>
+        <g><rect x="796" y="152" width="150" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="871" y="169" font-size="10.5" text-anchor="middle" fill="var(--ink)">Perf. Dashboard</text></g>
+        <g><rect x="796" y="188" width="150" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="871" y="205" font-size="10.5" text-anchor="middle" fill="var(--ink)">Document Events</text></g>
+        <g><rect x="796" y="224" width="150" height="26" rx="13" fill="var(--flow-soft)" stroke="var(--flow)"/><text x="871" y="241" font-size="10.5" text-anchor="middle" fill="var(--ink)">Evaluation History</text></g>
+        <g><rect x="796" y="260" width="150" height="26" rx="13" fill="var(--error-soft)" stroke="var(--error)"/><text x="871" y="277" font-size="10.5" text-anchor="middle" fill="var(--ink)">Dead-Letter Queue</text></g>
+
+        <line x1="780" y1="149" x2="740" y2="149" stroke="var(--ink-faint)" stroke-width="1.1" stroke-dasharray="2 2"/>
+        <text x="748" y="144" font-size="9.5" fill="var(--ink-faint)">instruments</text>
+        <line x1="780" y1="233" x2="740" y2="233" stroke="var(--ink-faint)" stroke-width="1.1" stroke-dasharray="2 2"/>
+        <line x1="780" y1="587" x2="740" y2="587" stroke="var(--ink-faint)" stroke-width="1.1" stroke-dasharray="2 2"/>
+
+        <line x1="700" y1="756" x2="700" y2="742" stroke="currentColor" stroke-width="1.3" opacity="0.6" marker-end="url(#arrow)"/>
+        <text x="706" y="751" font-size="9.5" fill="currentColor" opacity="0.7">persists</text>
+      </svg>
+      <figcaption>Cortex's eight-layer stack. A customer request flows top to bottom through layers 1–6 to produce an answer; layers 7–8 are the persistence and ingestion foundation those layers read and write, not a further downstream hop. Observability instruments every layer without sitting in the request path.</figcaption>
+    </figure>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Package</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><th rowspan="2">1 · Experience</th><td class="pkg">frontend/customer-portal</td><td>Static HTML/CSS/JS chat UI, served same-origin by FastAPI at <code>/app</code></td></tr>
+          <tr><td class="pkg">frontend/admin-portal</td><td>Streamlit backoffice — 9 pages, own uv project</td></tr>
+          <tr><th rowspan="3">2 · API &amp; Security</th><td class="pkg">api/routes</td><td>11 FastAPI routers: auth, companies, products, documents, conversations, evaluation, industries, admin/*</td></tr>
+          <tr><td class="pkg">api/auth, core/security</td><td>JWT bearer tokens (PyJWT), bcrypt password hashing, 8h session</td></tr>
+          <tr><td class="pkg">api/dependencies</td><td>Company-scoped auth dependency; every product/conversation lookup checks tenant ownership</td></tr>
+          <tr><th rowspan="4">3 · Business Service</th><td class="pkg">services/conversation</td><td>Orchestrates one Q&amp;A turn: guardrail → embed → memory → planner → memory write → metrics</td></tr>
+          <tr><td class="pkg">services/document</td><td>Upload validation, quota pre-check, enqueues the ingestion workflow</td></tr>
+          <tr><td class="pkg">services/{product,company,industry}</td><td>CRUD + tenant/catalog management</td></tr>
+          <tr><td class="pkg">services/evaluation</td><td>Golden-dataset loading, evaluation run bookkeeping</td></tr>
+          <tr><th rowspan="6">4 · Workflow Orchestrator</th><td class="pkg">workflows/document_ingestion</td><td>Extract → clean → chunk → governance gate → embed → persist, with a DocumentEvent per stage</td></tr>
+          <tr><td class="pkg">workflows/evaluation</td><td>Runs the full golden-dataset pass through the real conversation path</td></tr>
+          <tr><td class="pkg">workflows/knowledge_generation</td><td>Scaffolded — no logic yet</td></tr>
+          <tr><td class="pkg">workflows/product_persona</td><td>Scaffolded — no logic yet</td></tr>
+          <tr><td class="pkg">workflows/sync</td><td>Scaffolded — no logic yet</td></tr>
+          <tr><td class="pkg">workflows/async</td><td>Scaffolded — no logic yet</td></tr>
+          <tr><th rowspan="7">5 · Agent Governance</th><td class="pkg">governance/budget</td><td>Upload-time document quota + post-chunk token budget checks</td></tr>
+          <tr><td class="pkg">governance/guardrails</td><td>Denylist content gate on ingestion and query; designed to swap in a classifier later</td></tr>
+          <tr><td class="pkg">governance/policies</td><td>DB-backed <code>PlatformConfig</code> — provider priorities editable live via Admin Portal</td></tr>
+          <tr><td class="pkg">agents/context/memory_providers (policy)</td><td>Memory governance — see the dedicated table below</td></tr>
+          <tr><td class="pkg">agents/compliance_rules.py</td><td>EU AI Act aligned guardrails — see the dedicated section below</td></tr>
+          <tr><td class="pkg">governance/permissions</td><td>Scaffolded — no RBAC logic yet</td></tr>
+          <tr><td class="pkg">governance/execution</td><td>Scaffolded — no execution sandboxing yet</td></tr>
+          <tr><th rowspan="8">6 · Agent Layer (ADK)</th><td class="pkg">agents/planner</td><td>One structured-output LLM call classifies a turn: answer directly, ask to clarify, or route. Functionally a content-based traffic-control router — it classifies and dispatches, it never does a domain's actual work itself</td></tr>
+          <tr><td class="pkg">agents/product_specialist</td><td>Deterministic retrieval + decide → answer / search-again (max 1 retry) / clarify</td></tr>
+          <tr><td class="pkg">agents/validation (judge_agent)</td><td>LLM critic scoring faithfulness, relevancy, compliance, refusal/escalation correctness</td></tr>
+          <tr><td class="pkg">agents/retrieval, knowledge/vector</td><td>pgvector similarity search + recall@k / precision@k / MRR scoring</td></tr>
+          <tr><td class="pkg">agents/context/memory_providers (Memory &amp; Context Mgmt)</td><td>Short-term, summarized, long-term (semantic) and episodic memory — local (pgvector) or Vertex AI Memory Bank. Governed by the six dimensions in the Memory governance diagram below</td></tr>
+          <tr><td class="pkg">agents/voice</td><td>Speech-to-text / text-to-speech provider registries — Vertex AI wired</td></tr>
+          <tr><td class="pkg">agents/{intent,recommendation}</td><td>Scaffolded — no domain registered for these yet</td></tr>
+          <tr><td class="pkg">agents/{tools,mcp,a2a}</td><td>Scaffolded — no tool-use or agent-to-agent wiring yet</td></tr>
+          <tr><th rowspan="2">7 · Persistence</th><td class="pkg">repositories/*</td><td>One repository per entity — company, conversation, memory_fact, evaluation, knowledge, observability, product</td></tr>
+          <tr><td class="pkg">knowledge/vector</td><td>Embedding persistence + pgvector similarity queries on Postgres</td></tr>
+          <tr><th rowspan="4">8 · Data Ingestion</th><td class="pkg">ingestion/extractors</td><td>PDF, DOCX, plain-text parsers behind a common registry</td></tr>
+          <tr><td class="pkg">ingestion/transformers</td><td>One cleaning profile ("generic"), one chunking strategy ("fixed_size", versioned)</td></tr>
+          <tr><td class="pkg">ingestion/loaders/storage_providers</td><td>Local disk, AWS S3, Google Cloud Storage — pluggable, single active choice per deployment</td></tr>
+          <tr><td class="pkg">ingestion/{batch,realtime,hybrid}</td><td>Scaffolded — only the interactive upload path exists today</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Memory governance</h3>
+    <p>Conversation memory is bounded and policy-driven, not an unbounded transcript. Six dimensions define that policy, each backed by real, checkable code:</p>
+
+    <figure>
+      <svg viewBox="0 0 920 262" role="img" aria-label="Memory governance hub and spokes: Conversation Memory is governed by six dimensions — context retention, retrieval, latency awareness, privacy boundary, memory pruning, and session boundary.">
+        <defs>
+          <marker id="arrowMem" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-faint)"/>
+          </marker>
+        </defs>
+
+        <rect x="310" y="18" width="300" height="46" rx="9" fill="var(--surface)" stroke="currentColor" stroke-width="1.4"/>
+        <text x="460" y="46" font-size="12.5" text-anchor="middle" font-weight="700" fill="currentColor">Conversation Memory</text>
+
+        <line x1="380" y1="64" x2="85" y2="108" stroke="var(--ink-faint)" stroke-width="1.1" marker-end="url(#arrowMem)"/>
+        <line x1="415" y1="64" x2="235" y2="108" stroke="var(--ink-faint)" stroke-width="1.1" marker-end="url(#arrowMem)"/>
+        <line x1="445" y1="64" x2="385" y2="108" stroke="var(--ink-faint)" stroke-width="1.1" marker-end="url(#arrowMem)"/>
+        <line x1="475" y1="64" x2="535" y2="108" stroke="var(--ink-faint)" stroke-width="1.1" marker-end="url(#arrowMem)"/>
+        <line x1="505" y1="64" x2="685" y2="108" stroke="var(--ink-faint)" stroke-width="1.1" marker-end="url(#arrowMem)"/>
+        <line x1="540" y1="64" x2="835" y2="108" stroke="var(--ink-faint)" stroke-width="1.1" marker-end="url(#arrowMem)"/>
+
+        <!-- 1 Context retention -->
+        <rect x="16" y="108" width="138" height="118" rx="8" fill="var(--decision-soft)" stroke="var(--decision)"/>
+        <text x="85" y="128" font-size="11" text-anchor="middle" font-weight="700" fill="var(--ink)">Context Retention</text>
+        <text x="85" y="150" font-size="9" text-anchor="middle" fill="var(--ink-muted)">8 turns kept</text>
+        <text x="85" y="163" font-size="9" text-anchor="middle" fill="var(--ink-muted)">verbatim, then</text>
+        <text x="85" y="176" font-size="9" text-anchor="middle" fill="var(--ink-muted)">rolled into an</text>
+        <text x="85" y="189" font-size="9" text-anchor="middle" fill="var(--ink-muted)">LLM summary at</text>
+        <text x="85" y="202" font-size="9" text-anchor="middle" fill="var(--ink-muted)">12 messages</text>
+
+        <!-- 2 Retrieval -->
+        <rect x="166" y="108" width="138" height="118" rx="8" fill="var(--decision-soft)" stroke="var(--decision)"/>
+        <text x="235" y="128" font-size="11" text-anchor="middle" font-weight="700" fill="var(--ink)">Retrieval</text>
+        <text x="235" y="150" font-size="9" text-anchor="middle" fill="var(--ink-muted)">pgvector cosine</text>
+        <text x="235" y="163" font-size="9" text-anchor="middle" fill="var(--ink-muted)">search, top-15</text>
+        <text x="235" y="176" font-size="9" text-anchor="middle" fill="var(--ink-muted)">candidates per</text>
+        <text x="235" y="189" font-size="9" text-anchor="middle" fill="var(--ink-muted)">type, filtered by</text>
+        <text x="235" y="202" font-size="9" text-anchor="middle" fill="var(--ink-muted)">a 0.5 similarity floor</text>
+
+        <!-- 3 Latency awareness -->
+        <rect x="316" y="108" width="138" height="118" rx="8" fill="var(--decision-soft)" stroke="var(--decision)"/>
+        <text x="385" y="128" font-size="11" text-anchor="middle" font-weight="700" fill="var(--ink)">Latency Awareness</text>
+        <text x="385" y="150" font-size="9" text-anchor="middle" fill="var(--ink-muted)">reuses the turn's</text>
+        <text x="385" y="163" font-size="9" text-anchor="middle" fill="var(--ink-muted)">query embedding —</text>
+        <text x="385" y="176" font-size="9" text-anchor="middle" fill="var(--ink-muted)">no second embed —</text>
+        <text x="385" y="189" font-size="9" text-anchor="middle" fill="var(--ink-muted)">timed as its own</text>
+        <text x="385" y="202" font-size="9" text-anchor="middle" fill="var(--ink-muted)">StepTimer stage</text>
+
+        <!-- 4 Privacy boundary -->
+        <rect x="466" y="108" width="138" height="118" rx="8" fill="var(--decision-soft)" stroke="var(--decision)"/>
+        <text x="535" y="128" font-size="11" text-anchor="middle" font-weight="700" fill="var(--ink)">Privacy Boundary</text>
+        <text x="535" y="150" font-size="9" text-anchor="middle" fill="var(--ink-muted)">hard company_id</text>
+        <text x="535" y="163" font-size="9" text-anchor="middle" fill="var(--ink-muted)">filter on every</text>
+        <text x="535" y="176" font-size="9" text-anchor="middle" fill="var(--ink-muted)">search — never</text>
+        <text x="535" y="189" font-size="9" text-anchor="middle" fill="var(--ink-muted)">cross-tenant, but</text>
+        <text x="535" y="202" font-size="9" text-anchor="middle" fill="var(--ink-muted)">shared company-wide</text>
+
+        <!-- 5 Memory pruning -->
+        <rect x="616" y="108" width="138" height="118" rx="8" fill="var(--decision-soft)" stroke="var(--decision)"/>
+        <text x="685" y="128" font-size="11" text-anchor="middle" font-weight="700" fill="var(--ink)">Memory Pruning</text>
+        <text x="685" y="150" font-size="9" text-anchor="middle" fill="var(--ink-muted)">compacted by</text>
+        <text x="685" y="163" font-size="9" text-anchor="middle" fill="var(--ink-muted)">summarization, or</text>
+        <text x="685" y="176" font-size="9" text-anchor="middle" fill="var(--ink-muted)">wiped per-company</text>
+        <text x="685" y="189" font-size="9" text-anchor="middle" fill="var(--ink-muted)">by an admin — no</text>
+        <text x="685" y="202" font-size="9" text-anchor="middle" fill="var(--ink-muted)">automatic expiry</text>
+
+        <!-- 6 Session boundary -->
+        <rect x="766" y="108" width="138" height="118" rx="8" fill="var(--decision-soft)" stroke="var(--decision)"/>
+        <text x="835" y="128" font-size="11" text-anchor="middle" font-weight="700" fill="var(--ink)">Session Boundary</text>
+        <text x="835" y="150" font-size="9" text-anchor="middle" fill="var(--ink-muted)">short-term + summary</text>
+        <text x="835" y="163" font-size="9" text-anchor="middle" fill="var(--ink-muted)">reset per new</text>
+        <text x="835" y="176" font-size="9" text-anchor="middle" fill="var(--ink-muted)">conversation; long-term</text>
+        <text x="835" y="189" font-size="9" text-anchor="middle" fill="var(--ink-muted)">facts persist company-</text>
+        <text x="835" y="202" font-size="9" text-anchor="middle" fill="var(--ink-muted)">wide, across sessions</text>
+      </svg>
+      <figcaption>Two of the six dimensions carry a deliberate nuance: Cortex has no individual end-user identity (one shared company login), so "privacy boundary" and "session boundary" are enforced at the company level, not the conversation level — long-term and episodic facts are scoped to <code>company_id</code> and intentionally surface across separate conversation threads under the same login.</figcaption>
+    </figure>
+
+    <p>The same six dimensions, with the exact setting or code path behind each:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Control</th><th>Setting</th><th>Value</th><th>What it governs</th></tr></thead>
+        <tbody>
+          <tr><td>Provider</td><td class="pkg">conversation_memory_provider</td><td class="num">local | vertex_ai_session_service</td><td>"local" runs short/long/episodic tiers directly against pgvector; the Vertex option delegates to Google's managed Session + Memory Bank services</td></tr>
+          <tr><td>Short-term window</td><td class="pkg">short_term_window_size</td><td class="num">8 turns</td><td>How many raw recent turns are kept verbatim before they age into the summary</td></tr>
+          <tr><td>Summarization trigger</td><td class="pkg">summary_trigger_message_count</td><td class="num">12 messages</td><td>When older history is folded into a running summary instead of being dropped</td></tr>
+          <tr><td>Candidate recall</td><td class="pkg">memory_retrieval_top_k</td><td class="num">15</td><td>Semantic/episodic candidates pulled from pgvector before filtering — deliberately wider than what's actually injected</td></tr>
+          <tr><td>Relevance floor</td><td class="pkg">memory_min_similarity</td><td class="num">0.5 cosine</td><td>A candidate fact below this similarity is dropped even if there's token budget left — a weak match dilutes signal more than it helps</td></tr>
+          <tr><td>Long-term token budget</td><td class="pkg">memory_long_term_token_budget</td><td class="num">400 tokens</td><td>Caps how much durable-fact context can grow the prompt</td></tr>
+          <tr><td>Episodic token budget</td><td class="pkg">memory_episodic_token_budget</td><td class="num">300 tokens</td><td>Separate cap for past-exchange recall, budgeted independently since episodic facts run longer</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>EU AI Act aligned guardrails</h3>
+    <p>Cortex has no separate "compliance module" — the obligations below are met by controls that already exist for other reasons (answer quality, tenant safety, auditability). This is an architectural alignment mapping, not a compliance certification.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Obligation</th><th>Cortex control</th><th>Where it lives</th></tr></thead>
+        <tbody>
+          <tr><td>Human oversight of automated decisions</td><td>Escalation triggers steer the assistant to say a human follow-up is needed (legal/tax questions, allocation/wiring requests, confidential-data requests, alleged misrepresentation); every weak-verdict answer is queued for human review regardless</td><td class="pkg">agents/compliance_rules.py (ESCALATION_TRIGGERS), Dead-Letter Queue</td></tr>
+          <tr><td>Record-keeping / logging of system operation</td><td>Every ingestion stage and every conversation turn is logged with outcome and timing; trace spans are emitted when OpenTelemetry export is enabled</td><td class="pkg">DocumentEvent, QueryMetric, observability/tracing</td></tr>
+          <tr><td>Accuracy &amp; robustness monitoring</td><td>A golden-dataset regression suite scores faithfulness, compliance, and retrieval quality; live traffic is scored the same way by the background critic on every turn</td><td class="pkg">workflows/evaluation, agents/validation/judge_agent</td></tr>
+          <tr><td>Risk / content controls specific to the domain</td><td>A named compliance policy (no guaranteed returns, no personalized advice, no fabrication, confidentiality handling, no fee/commission discussion) is baked into the answering instruction itself, not just checked afterward</td><td class="pkg">agents/compliance_rules.py (COMPLIANCE_RULES)</td></tr>
+          <tr><td>Data governance &amp; traceability</td><td>Chunking strategy and its version are recorded on every Document, so a re-chunk after a strategy change is traceable rather than silently mixed into the corpus</td><td class="pkg">models/knowledge/document.py</td></tr>
+          <tr><td>Transparency — users should know they're talking to an AI system</td><td>Not currently surfaced: no AI-disclosure text was found in the customer portal build</td><td class="pkg">frontend/customer-portal — gap</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">2 ·</span> Observability</h2>
+    <p class="section-sub">What the platform records about its own behaviour, and where a person goes to look at it.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>What it captures</th><th>Where it surfaces</th></tr></thead>
+        <tbody>
+          <tr><td class="pkg">OpenTelemetry</td><td>Traces, metrics and logs, auto-instrumented for FastAPI, aiohttp-client, logging and SQLAlchemy; exported via OTLP/gRPC. Off by default (<code>otel_enabled=false</code>) until a collector is actually running</td><td>Grafana Alloy collector (Docker), then onward to Tempo / Loki / Prometheus</td></tr>
+          <tr><td class="pkg">StepTimer</td><td>Hand-rolled per-step latency: query embedding, memory retrieval, answer generation, memory write, judge evaluation, speech-to-text, text-to-speech</td><td>Persisted per turn as a <code>QueryMetric</code> row in Postgres</td></tr>
+          <tr><td class="pkg">Performance Dashboard</td><td>Avg / p95 latency per step, prompt/completion/total tokens, monthly token-budget consumption, hourly/daily timeseries, voice success rate</td><td>Streamlit Admin Portal, page 8</td></tr>
+          <tr><td class="pkg">Document Events</td><td>One event per ingestion stage (extracting, cleaning, chunking, governance, embedding, persisting, indexed, or failure) with a human-readable summary</td><td>Streamlit Document Dashboard, page 4</td></tr>
+          <tr><td class="pkg">Evaluation history</td><td>Every golden-dataset run and every ad-hoc RAG Playground evaluation, with retrieval and judge scores, kept as a running record</td><td>Streamlit Evaluation page, page 7</td></tr>
+          <tr><td class="pkg">Dead-Letter Queue</td><td>Every answer the critic scored as weak (faithfulness, relevancy, compliance, or refusal below threshold), with the full verdict attached</td><td>Streamlit Dead-Letter Queue, page 9</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Observability is cross-cutting by design (see the dashed rail in the architecture diagram above) — it instruments layers 1–8, it is never a stage a request has to pass through to get an answer.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">3 ·</span> A customer question, start to finish</h2>
+    <p class="section-sub">Every step a real question actually takes through the live system today — the planner's routing decision, Product Specialist's own retry logic, the voice wrapper, and the critic that runs either synchronously or after the fact depending on whether evaluation was explicitly requested.</p>
+
+    <figure class="workflow-fig">
+      <svg viewBox="0 0 1000 1660" role="img" aria-label="Flowchart of a customer query through Cortex: entry by text or voice, validation, context assembly, the planner's three-way routing decision, Product Specialist's own pre-fetch and decision with a bounded one-time retry, memory write, a synchronous or fire-and-forget critic depending on whether evaluation was requested, metrics recording, and the response back to the customer, with voice adding speech-to-text before and text-to-speech after the shared path.">
+        <defs>
+          <marker id="wfArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-muted)"/>
+          </marker>
+          <marker id="wfArrowMain" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/>
+          </marker>
+        </defs>
+
+        <text x="650" y="26" class="lbl" text-anchor="middle">Customer types a question</text>
+        <text x="180" y="26" class="lbl" text-anchor="middle">Customer speaks a question</text>
+
+        <line x1="650" y1="34" x2="500" y2="66" class="edge-main" marker-end="url(#wfArrowMain)"/>
+        <line x1="180" y1="34" x2="180" y2="60" class="edge" marker-end="url(#wfArrow)"/>
+
+        <rect x="70" y="60" width="220" height="52" rx="8" class="n-voice"/>
+        <text x="180" y="80" class="lbl" text-anchor="middle" font-weight="600">Speech-to-text</text>
+        <text x="180" y="96" class="lbl-sm" text-anchor="middle">Gemini audio understanding</text>
+
+        <line x1="180" y1="112" x2="440" y2="150" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="230" y="140" class="edge-lbl">transcript</text>
+
+        <rect x="380" y="150" width="240" height="46" rx="8" class="n-box"/>
+        <text x="500" y="178" class="lbl-mono" text-anchor="middle">POST /conversations/query</text>
+
+        <line x1="500" y1="196" x2="500" y2="224" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="320" y="224" width="360" height="66" rx="8" class="n-box"/>
+        <text x="500" y="250" class="lbl" text-anchor="middle" font-weight="600">Validate</text>
+        <text x="500" y="267" class="lbl-sm" text-anchor="middle">product active? company owns it? guardrail OK?</text>
+        <text x="500" y="282" class="lbl-sm" text-anchor="middle">get or create Conversation</text>
+
+        <line x1="680" y1="257" x2="780" y2="257" class="edge" marker-end="url(#wfArrow)"/>
+        <rect x="780" y="232" width="180" height="50" rx="8" class="n-error"/>
+        <text x="870" y="252" class="lbl" text-anchor="middle" font-weight="600">Rejected</text>
+        <text x="870" y="268" class="lbl-sm lbl-mono" text-anchor="middle">404 / 403 / 400</text>
+
+        <line x1="500" y1="290" x2="500" y2="316" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="320" y="316" width="360" height="50" rx="8" class="n-flow"/>
+        <text x="500" y="346" class="lbl" text-anchor="middle">Embed query — text-embedding-004</text>
+
+        <line x1="500" y1="366" x2="500" y2="392" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="320" y="392" width="360" height="58" rx="8" class="n-flow"/>
+        <text x="500" y="416" class="lbl" text-anchor="middle">Retrieve conversation memory</text>
+        <text x="500" y="432" class="lbl-sm" text-anchor="middle">summary · long-term facts · recent turns</text>
+
+        <line x1="500" y1="450" x2="500" y2="476" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="300" y="476" width="400" height="64" rx="8" class="n-decision"/>
+        <text x="500" y="502" class="lbl" text-anchor="middle" font-weight="700">Planner decides</text>
+        <text x="500" y="519" class="lbl-sm lbl-mono" text-anchor="middle">Gemini · structured output · no tools</text>
+        <text x="500" y="533" class="lbl-sm" text-anchor="middle">answer directly, ask, or route — one call, always</text>
+
+        <line x1="500" y1="540" x2="150" y2="580" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="270" y="562" class="edge-lbl">direct_answer</text>
+        <line x1="500" y1="540" x2="500" y2="580" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="510" y="562" class="edge-lbl">clarify</text>
+        <line x1="500" y1="540" x2="800" y2="580" class="edge-main" marker-end="url(#wfArrowMain)"/>
+        <text x="670" y="562" class="edge-lbl" style="fill:var(--flow)">route</text>
+
+        <rect x="40" y="580" width="220" height="50" rx="8" class="n-box"/>
+        <text x="150" y="600" class="lbl" text-anchor="middle">Answer directly</text>
+        <text x="150" y="616" class="lbl-sm" text-anchor="middle">greeting, meta, "what did I just ask"</text>
+
+        <rect x="390" y="580" width="220" height="50" rx="8" class="n-box"/>
+        <text x="500" y="600" class="lbl" text-anchor="middle">Ask clarifying question</text>
+        <text x="500" y="616" class="lbl-sm" text-anchor="middle">records ClarificationState</text>
+
+        <rect x="660" y="580" width="300" height="370" rx="10" class="n-group"/>
+        <text x="810" y="602" class="lbl-group" text-anchor="middle">Product Specialist</text>
+
+        <rect x="700" y="616" width="220" height="50" rx="8" class="n-flow"/>
+        <text x="810" y="636" class="lbl" text-anchor="middle">Deterministic pre-fetch</text>
+        <text x="810" y="652" class="lbl-sm" text-anchor="middle">pgvector search</text>
+
+        <line x1="810" y1="666" x2="810" y2="692" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="690" y="692" width="240" height="72" rx="8" class="n-decision"/>
+        <text x="810" y="716" class="lbl" text-anchor="middle" font-weight="700">Decision call</text>
+        <text x="810" y="732" class="lbl-sm" text-anchor="middle">structured output +</text>
+        <text x="810" y="746" class="lbl-sm" text-anchor="middle">compliance / escalation policy</text>
+
+        <line x1="750" y1="764" x2="720" y2="800" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="700" y="788" class="edge-lbl" text-anchor="end">answer</text>
+        <line x1="810" y1="764" x2="810" y2="800" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="820" y="788" class="edge-lbl">clarify</text>
+        <line x1="870" y1="764" x2="850" y2="864" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="895" y="790" class="edge-lbl">search_again</text>
+
+        <rect x="690" y="800" width="90" height="44" rx="8" class="n-box"/>
+        <text x="735" y="826" class="lbl" text-anchor="middle">Answer</text>
+
+        <rect x="790" y="800" width="90" height="44" rx="8" class="n-box"/>
+        <text x="835" y="820" class="lbl" text-anchor="middle" font-size="11.5">Clarify</text>
+        <text x="835" y="834" class="lbl-sm" text-anchor="middle" font-size="9.5">records state</text>
+
+        <rect x="700" y="864" width="220" height="66" rx="8" class="n-box"/>
+        <text x="810" y="886" class="lbl" text-anchor="middle">Re-fetch + follow-up decision</text>
+        <text x="810" y="902" class="lbl-sm" text-anchor="middle">reformulated query, one retry only</text>
+        <text x="810" y="917" class="lbl-sm" text-anchor="middle">→ answer or clarify, no further search</text>
+
+        <line x1="735" y1="844" x2="560" y2="1000" class="edge" marker-end="url(#wfArrow)"/>
+        <line x1="835" y1="844" x2="600" y2="1000" class="edge" marker-end="url(#wfArrow)"/>
+        <line x1="810" y1="930" x2="640" y2="1000" class="edge" marker-end="url(#wfArrow)"/>
+
+        <line x1="150" y1="630" x2="380" y2="1000" class="edge" marker-end="url(#wfArrow)"/>
+        <line x1="500" y1="630" x2="450" y2="1000" class="edge" marker-end="url(#wfArrow)"/>
+
+        <rect x="330" y="1000" width="320" height="46" rx="8" class="n-box"/>
+        <text x="490" y="1028" class="lbl" text-anchor="middle" font-weight="600">Final answer text</text>
+
+        <line x1="500" y1="1046" x2="500" y2="1072" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="320" y="1072" width="360" height="46" rx="8" class="n-flow"/>
+        <text x="500" y="1100" class="lbl" text-anchor="middle">Write turn to conversation memory</text>
+
+        <line x1="500" y1="1118" x2="500" y2="1144" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <line x1="500" y1="1144" x2="330" y2="1180" class="edge-main" marker-end="url(#wfArrowMain)"/>
+        <text x="380" y="1168" class="edge-lbl" text-anchor="middle">evaluate=true</text>
+        <line x1="500" y1="1144" x2="670" y2="1180" class="edge-async" marker-end="url(#wfArrow)"/>
+        <text x="640" y="1168" class="edge-lbl" text-anchor="middle">otherwise</text>
+
+        <rect x="210" y="1180" width="240" height="60" rx="8" class="n-box"/>
+        <text x="330" y="1202" class="lbl" text-anchor="middle" font-weight="600">Judge scores it now</text>
+        <text x="330" y="1218" class="lbl-sm" text-anchor="middle">synchronous — customer waits</text>
+
+        <rect x="550" y="1180" width="240" height="60" rx="8" class="n-box"/>
+        <text x="670" y="1202" class="lbl" text-anchor="middle" font-weight="600">Judge scores it later</text>
+        <text x="670" y="1218" class="lbl-sm" text-anchor="middle">fire-and-forget, after response sent</text>
+
+        <line x1="330" y1="1240" x2="440" y2="1276" class="edge" marker-end="url(#wfArrow)"/>
+        <line x1="670" y1="1240" x2="560" y2="1276" class="edge-async" marker-end="url(#wfArrow)"/>
+
+        <rect x="370" y="1276" width="260" height="50" rx="8" class="n-error"/>
+        <text x="500" y="1297" class="lbl" text-anchor="middle" font-weight="600">Weak answer?</text>
+        <text x="500" y="1313" class="lbl-sm" text-anchor="middle">flagged to dead-letter queue</text>
+
+        <line x1="500" y1="1326" x2="500" y2="1352" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="320" y="1352" width="360" height="50" rx="8" class="n-flow"/>
+        <text x="500" y="1373" class="lbl" text-anchor="middle">Record query metrics</text>
+        <text x="500" y="1389" class="lbl-sm" text-anchor="middle">timings, tokens, decision/domain → Postgres</text>
+
+        <line x1="500" y1="1402" x2="500" y2="1428" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <line x1="500" y1="1402" x2="500" y2="1490" class="edge-main" marker-end="url(#wfArrowMain)"/>
+        <text x="512" y="1440" class="edge-lbl">text response</text>
+
+        <line x1="560" y1="1402" x2="700" y2="1430" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="640" y="1412" class="edge-lbl">if voice</text>
+
+        <rect x="700" y="1430" width="220" height="52" rx="8" class="n-voice"/>
+        <text x="810" y="1450" class="lbl" text-anchor="middle" font-weight="600">Text-to-speech</text>
+        <text x="810" y="1466" class="lbl-sm" text-anchor="middle">Gemini TTS → WAV audio</text>
+
+        <line x1="740" y1="1482" x2="560" y2="1508" class="edge" marker-end="url(#wfArrow)"/>
+        <text x="700" y="1502" class="edge-lbl" text-anchor="middle">audio (base64)</text>
+
+        <rect x="380" y="1490" width="240" height="46" rx="8" class="n-box"/>
+        <text x="500" y="1518" class="lbl" text-anchor="middle">Response JSON</text>
+
+        <line x1="500" y1="1536" x2="500" y2="1562" class="edge-main" marker-end="url(#wfArrowMain)"/>
+
+        <rect x="380" y="1562" width="240" height="46" rx="8" class="n-box"/>
+        <text x="500" y="1590" class="lbl" text-anchor="middle" font-weight="700">Back to Customer Portal</text>
+
+        <line x1="30" y1="150" x2="30" y2="1536" class="edge" stroke-dasharray="2 5"/>
+        <line x1="30" y1="150" x2="45" y2="150" class="edge" stroke-dasharray="2 5"/>
+        <line x1="30" y1="1536" x2="45" y2="1536" class="edge" stroke-dasharray="2 5"/>
+        <text x="14" y="843" class="lbl-sm" text-anchor="middle" transform="rotate(-90 14 843)">every step above also emits a trace span → Alloy → Tempo / Loki / Prometheus</text>
+      </svg>
+      <figcaption>The complete path of one customer question: text or voice entry, validation, context assembly, the planner's single routing decision, Product Specialist's own pre-fetch and bounded retry, memory write, a critic that either blocks the response or runs after it depending on whether evaluation was requested, metrics recording, and (for voice) synthesis back to audio — with every step also producing a trace span behind the scenes.</figcaption>
+    </figure>
+    <div class="diagram-legend">
+      <span><span class="swatch sw-flow"></span> processing step</span>
+      <span><span class="swatch sw-decision"></span> structured-output decision (Gemini)</span>
+      <span><span class="swatch sw-voice"></span> voice-only step</span>
+      <span><span class="swatch sw-error"></span> rejected / flagged</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">4 ·</span> Document ingestion — the two-pass governance gate</h2>
+    <p class="section-sub">A coarse check before anything is persisted, and a precise one once the real chunk count and token cost are known.</p>
+
+    <figure>
+      <svg viewBox="0 0 1140 200" role="img" aria-label="Document ingestion pipeline: upload triggers a coarse monthly-quota gate before persisting, then extract, clean, and chunk stages run, followed by a precise content-and-token-budget gate before embedding and persisting to the vector store.">
+        <defs>
+          <marker id="arrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <rect x="20" y="70" width="86" height="46" rx="8" fill="var(--surface)" stroke="currentColor" opacity="0.9"/>
+        <text x="63" y="97" font-size="11" text-anchor="middle" fill="currentColor">Upload</text>
+        <line x1="106" y1="93" x2="126" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <text x="196" y="60" font-size="9.5" text-anchor="middle" fill="var(--decision)" letter-spacing="0.05em">GATE 1</text>
+        <rect x="126" y="70" width="140" height="46" rx="8" fill="var(--decision-soft)" stroke="var(--decision)" stroke-width="1.6"/>
+        <text x="196" y="92" font-size="10.5" text-anchor="middle" fill="var(--ink)">Monthly Quota</text>
+        <text x="196" y="105" font-size="9" text-anchor="middle" fill="var(--ink-muted)">Business Service, pre-persist</text>
+        <line x1="266" y1="93" x2="286" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <rect x="286" y="70" width="80" height="46" rx="8" fill="var(--flow-soft)" stroke="var(--flow)"/>
+        <text x="326" y="92" font-size="10.5" text-anchor="middle" fill="var(--ink)">Extract</text>
+        <text x="326" y="105" font-size="8.5" text-anchor="middle" fill="var(--ink-muted)">pdf / docx / txt</text>
+        <line x1="366" y1="93" x2="386" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <rect x="386" y="70" width="80" height="46" rx="8" fill="var(--flow-soft)" stroke="var(--flow)"/>
+        <text x="426" y="92" font-size="10.5" text-anchor="middle" fill="var(--ink)">Clean</text>
+        <text x="426" y="105" font-size="8.5" text-anchor="middle" fill="var(--ink-muted)">profile-based</text>
+        <line x1="466" y1="93" x2="486" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <rect x="486" y="70" width="86" height="46" rx="8" fill="var(--flow-soft)" stroke="var(--flow)"/>
+        <text x="529" y="92" font-size="10.5" text-anchor="middle" fill="var(--ink)">Chunk</text>
+        <text x="529" y="105" font-size="8.5" text-anchor="middle" fill="var(--ink-muted)">versioned strategy</text>
+        <line x1="572" y1="93" x2="592" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <text x="682" y="60" font-size="9.5" text-anchor="middle" fill="var(--decision)" letter-spacing="0.05em">GATE 2</text>
+        <rect x="592" y="70" width="180" height="46" rx="8" fill="var(--decision-soft)" stroke="var(--decision)" stroke-width="1.6"/>
+        <text x="682" y="92" font-size="10.5" text-anchor="middle" fill="var(--ink)">Content + Token Budget</text>
+        <text x="682" y="105" font-size="9" text-anchor="middle" fill="var(--ink-muted)">Workflow, post-chunk-count</text>
+        <line x1="772" y1="93" x2="792" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <rect x="792" y="70" width="80" height="46" rx="8" fill="var(--flow-soft)" stroke="var(--flow)"/>
+        <text x="832" y="92" font-size="10.5" text-anchor="middle" fill="var(--ink)">Embed</text>
+        <text x="832" y="105" font-size="8.5" text-anchor="middle" fill="var(--ink-muted)">provider fallback</text>
+        <line x1="872" y1="93" x2="892" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <rect x="892" y="70" width="100" height="46" rx="8" fill="var(--flow-soft)" stroke="var(--flow)"/>
+        <text x="942" y="92" font-size="10.5" text-anchor="middle" fill="var(--ink)">Persist</text>
+        <text x="942" y="105" font-size="8.5" text-anchor="middle" fill="var(--ink-muted)">pgvector</text>
+        <line x1="992" y1="93" x2="1012" y2="93" stroke="currentColor" opacity="0.6" marker-end="url(#arrow3)"/>
+
+        <rect x="1012" y="70" width="108" height="46" rx="8" fill="var(--surface)" stroke="currentColor" opacity="0.9"/>
+        <text x="1066" y="92" font-size="10.5" text-anchor="middle" fill="currentColor">Indexed</text>
+        <text x="1066" y="105" font-size="8.5" text-anchor="middle" fill="var(--ink-muted)">ready to query</text>
+
+        <text x="20" y="155" font-size="10" fill="var(--ink-muted)">Every stage reports its status back through the Document Service (never a direct DB write from the workflow) and writes a DocumentEvent — the audit trail the Document Dashboard reads.</text>
+        <text x="20" y="172" font-size="10" fill="var(--ink-muted)">A failure at either gate rolls back, marks the document failed, and stops — nothing partially indexed is left behind.</text>
+      </svg>
+      <figcaption>Governance is never duplicated in a service or workflow — both gates call into the same governance/budget and governance/guardrails packages that the query path also uses.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">5 ·</span> Technology stack</h2>
+    <p class="section-sub">Grouped by concern, pulled directly from the three <code>pyproject.toml</code> manifests (root workspace, backend, admin portal).</p>
+
+    <div class="stack-grid">
+      <div class="stack-card">
+        <h3>Backend &amp; API</h3>
+        <ul>
+          <li><span class="pkg">Python 3.13</span><span class="role">language</span></li>
+          <li><span class="pkg">FastAPI</span><span class="role">HTTP API, routing, DI</span></li>
+          <li><span class="pkg">Uvicorn</span><span class="role">ASGI server</span></li>
+          <li><span class="pkg">Pydantic v2 / -settings</span><span class="role">models, env config</span></li>
+          <li><span class="pkg">SQLAlchemy 2.0 (async)</span><span class="role">ORM</span></li>
+          <li><span class="pkg">asyncpg</span><span class="role">Postgres driver</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Agent &amp; LLM layer</h3>
+        <ul>
+          <li><span class="pkg">google-adk</span><span class="role">agent runner, structured output</span></li>
+          <li><span class="pkg">google-genai</span><span class="role">Gemini / Vertex AI SDK</span></li>
+          <li><span class="pkg">litellm</span><span class="role">multi-provider LLM abstraction</span></li>
+          <li><span class="pkg">Vertex · Groq · OpenAI</span><span class="role">generation providers</span></li>
+          <li><span class="pkg">Ollama · HF</span><span class="role">local / open-model fallback</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Embeddings &amp; voice</h3>
+        <ul>
+          <li><span class="pkg">Vertex text-embedding-004</span><span class="role">primary embeddings</span></li>
+          <li><span class="pkg">sentence-transformers</span><span class="role">local embeddings fallback</span></li>
+          <li><span class="pkg">Ollama nomic-embed-text</span><span class="role">self-hosted fallback</span></li>
+          <li><span class="pkg">Gemini audio understanding</span><span class="role">speech-to-text</span></li>
+          <li><span class="pkg">gemini-2.5-flash-tts</span><span class="role">text-to-speech</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Persistence</h3>
+        <ul>
+          <li><span class="pkg">PostgreSQL 15+</span><span class="role">system of record</span></li>
+          <li><span class="pkg">pgvector</span><span class="role">vector similarity search</span></li>
+          <li><span class="pkg">boto3 (S3) · GCS</span><span class="role">object storage providers</span></li>
+          <li><span class="pkg">local disk</span><span class="role">default storage provider</span></li>
+          <li><span class="pkg">pypdf · python-docx</span><span class="role">document extraction</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Auth, security &amp; governance</h3>
+        <ul>
+          <li><span class="pkg">PyJWT</span><span class="role">company-scoped bearer tokens</span></li>
+          <li><span class="pkg">bcrypt</span><span class="role">password hashing</span></li>
+          <li><span class="pkg">governance/budget</span><span class="role">custom quota / token-budget engine</span></li>
+          <li><span class="pkg">governance/guardrails</span><span class="role">denylist content gate</span></li>
+          <li><span class="pkg">governance/policies</span><span class="role">live, DB-backed config</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Observability</h3>
+        <ul>
+          <li><span class="pkg">OpenTelemetry API/SDK</span><span class="role">traces, metrics, logs</span></li>
+          <li><span class="pkg">OTLP gRPC → Grafana Alloy</span><span class="role">collector, off by default</span></li>
+          <li><span class="pkg">otel FastAPI/SQLAlchemy/aiohttp</span><span class="role">auto-instrumentation</span></li>
+          <li><span class="pkg">StepTimer (custom)</span><span class="role">per-step latency + tokens → Postgres</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Admin portal</h3>
+        <ul>
+          <li><span class="pkg">Streamlit</span><span class="role">9-page backoffice</span></li>
+          <li><span class="pkg">pandas</span><span class="role">tabular views</span></li>
+          <li><span class="pkg">httpx</span><span class="role">talks to the backend over REST</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Customer portal</h3>
+        <ul>
+          <li><span class="pkg">HTML / CSS / JS</span><span class="role">no framework, no build step</span></li>
+          <li><span class="pkg">FastAPI StaticFiles</span><span class="role">served same-origin at /app</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Dev tooling &amp; environment</h3>
+        <ul>
+          <li><span class="pkg">uv</span><span class="role">deps + 3-member workspace</span></li>
+          <li><span class="pkg">ruff</span><span class="role">lint + format</span></li>
+          <li><span class="pkg">mypy</span><span class="role">static typing</span></li>
+          <li><span class="pkg">pytest / pytest-asyncio</span><span class="role">test runner</span></li>
+        </ul>
+      </div>
+      <div class="stack-card">
+        <h3>Infrastructure</h3>
+        <ul>
+          <li><span class="pkg">Terraform</span><span class="role">infrastructure/terraform</span></li>
+          <li><span class="pkg">Docker</span><span class="role">infrastructure/docker (Alloy target)</span></li>
+          <li><span class="pkg">Kubernetes</span><span class="role">infrastructure/kubernetes</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Generated from the state of the <code>cortex/</code> backend and frontend packages as committed and staged in this repository. Re-run this audit after significant changes to agents/, governance/, or ingestion/.
+  </footer>
+
+</div>
+
+</body></html>
